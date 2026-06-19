@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- RigShift mark: a low-poly wireframe rig/terrain peak in blush on near-black -->
+  <rect width="64" height="64" fill="#0a0b0d"/>
+  <!-- dotted ground -->
+  <g fill="#2a2d33">
+    <circle cx="8" cy="56" r="1"/><circle cx="20" cy="56" r="1"/><circle cx="32" cy="56" r="1"/><circle cx="44" cy="56" r="1"/><circle cx="56" cy="56" r="1"/>
+    <circle cx="14" cy="50" r="1"/><circle cx="26" cy="50" r="1"/><circle cx="38" cy="50" r="1"/><circle cx="50" cy="50" r="1"/>
+  </g>
+  <!-- wireframe terrain triangles -->
+  <g stroke="#f3d6cf" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M6 46 L20 22 L34 40 L48 14 L58 44"/>
+    <path d="M6 46 L20 50 L34 46 L48 50 L58 44"/>
+    <path d="M20 22 L20 50 M34 40 L34 46 M48 14 L48 50"/>
+  </g>
+</svg>

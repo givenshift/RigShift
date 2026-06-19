@@ -76,6 +76,59 @@ function formatDuration(seconds: number) {
   return `${s}s`;
 }
 
+/* ── Bespoke wireframe-rig mark (SVG, no external art) ── */
+function RigMark() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <g stroke="var(--blush)" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" fill="none">
+        <path d="M6 46 L20 22 L34 40 L48 14 L58 44" />
+        <path d="M6 46 L20 50 L34 46 L48 50 L58 44" opacity="0.55" />
+        <path d="M20 22 L20 50 M48 14 L48 50" opacity="0.45" />
+      </g>
+    </svg>
+  );
+}
+
+/* ── Low-poly wireframe terrain (animated swell, GPU-cheap) ── */
+function Terrain() {
+  return (
+    <svg
+      className="terrain"
+      viewBox="0 0 1200 380"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      {/* far mesh */}
+      <g className="mesh-far terrain-wave tw-3">
+        <polyline points="0,200 150,150 300,185 450,130 600,175 750,120 900,170 1050,125 1200,165" />
+        <polyline points="0,260 150,235 300,255 450,225 600,250 750,220 900,248 1050,222 1200,245" />
+        <line x1="150" y1="150" x2="150" y2="235" /><line x1="300" y1="185" x2="300" y2="255" />
+        <line x1="450" y1="130" x2="450" y2="225" /><line x1="600" y1="175" x2="600" y2="250" />
+        <line x1="750" y1="120" x2="750" y2="220" /><line x1="900" y1="170" x2="900" y2="248" />
+        <line x1="1050" y1="125" x2="1050" y2="222" />
+      </g>
+      {/* mid mesh */}
+      <g className="mesh-mid terrain-wave tw-2">
+        <polyline points="0,300 120,255 260,295 400,240 540,290 700,235 860,285 1010,245 1200,290" />
+        <polyline points="0,340 120,320 260,338 400,315 540,336 700,312 860,334 1010,318 1200,338" />
+        <line x1="120" y1="255" x2="120" y2="320" /><line x1="260" y1="295" x2="260" y2="338" />
+        <line x1="400" y1="240" x2="400" y2="315" /><line x1="540" y1="290" x2="540" y2="336" />
+        <line x1="700" y1="235" x2="700" y2="312" /><line x1="860" y1="285" x2="860" y2="334" />
+        <line x1="1010" y1="245" x2="1010" y2="318" />
+        {/* triangulation diagonals */}
+        <line x1="120" y1="255" x2="260" y2="338" /><line x1="400" y1="240" x2="540" y2="336" />
+        <line x1="700" y1="235" x2="860" y2="334" />
+      </g>
+      {/* near mesh */}
+      <g className="mesh-near terrain-wave">
+        <polyline points="0,360 200,330 380,358 560,326 760,356 960,330 1200,360" />
+        <line x1="200" y1="330" x2="380" y2="358" /><line x1="560" y1="326" x2="760" y2="356" />
+        <line x1="960" y1="330" x2="1200" y2="360" />
+      </g>
+    </svg>
+  );
+}
+
 export default function Home() {
   const [account, setAccount] = useState("");
   const [arcBalance, setArcBalance] = useState("");
@@ -94,6 +147,18 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(id);
   }, [workerInfo?.clockedIn, workerInfo?.shiftStart]);
+
+  // Dotted-grid parallax on scroll (presentation only)
+  useEffect(() => {
+    const onScroll = () => {
+      document.documentElement.style.setProperty(
+        "--grid-shift",
+        `${window.scrollY * 0.18}px`
+      );
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const loadStats = useCallback(async (addr?: string) => {
     try {
@@ -181,202 +246,227 @@ export default function Home() {
 
   const connected = !!account;
   const cIn = workerInfo?.clockedIn ?? false;
+  const ok = txStatus.includes("✓");
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fafafa", fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', color: "#000" }}>
+    <div style={{ position: "relative", minHeight: "100vh", isolation: "isolate" }}>
+      {/* backdrop layers */}
+      <div className="dot-grid" />
+      <div className="vignette" />
 
-      {/* ─── TOP NAV ─── */}
-      <nav style={{
-        borderBottom: "2px solid #000",
-        padding: "0 32px",
-        height: "60px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        position: "sticky",
-        top: 0,
-        background: "#fafafa",
-        zIndex: 100,
-      }}>
-        <div style={{ fontWeight: 900, fontSize: "18px", letterSpacing: "-0.03em" }}>RIGSHIFT</div>
+      {/* extruded glitch vertical text on the right edge */}
+      <div className="edge-text">FIELD OPS</div>
 
+      {/* ─── TOP BAR ─── */}
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px clamp(18px, 4vw, 48px)",
+          borderBottom: "1px solid var(--line)",
+          background: "rgba(8,9,11,0.78)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {connected && (
-            <span style={{
-              fontSize: "11px",
-              fontFamily: '"Courier New", monospace',
-              background: chainOk ? "#00ff41" : "#ffcc00",
-              color: "#000",
-              padding: "3px 9px",
-              fontWeight: 700,
-            }}>
-              {chainOk ? "Arc Testnet ✓" : "Wrong Network ⚠"}
+          <RigMark />
+          <span className="pixel" style={{ fontSize: "18px", letterSpacing: "0.04em" }}>
+            RIGSHIFT
+          </span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* tiny status readout */}
+          <div className="readout" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span className={`status-dot ${connected ? (chainOk ? "" : "warn") : "idle"}`} />
+            <span style={{ opacity: 0.85 }}>
+              {connected ? (chainOk ? "SYS.ONLINE // OP.READY" : "SYS.ONLINE // NET.WARN") : "SYS.ONLINE // OP.STANDBY"}
             </span>
-          )}
+          </div>
 
           {connected ? (
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "#000",
-              color: "#00ff41",
-              padding: "6px 14px",
-              fontFamily: '"Courier New", monospace',
-              fontSize: "12px",
-              fontWeight: 700,
-            }}>
+            <div
+              className="panel-raised mono"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "8px 14px",
+                fontSize: "12px",
+                color: "var(--blush)",
+              }}
+            >
               <span>{account.slice(0, 6)}…{account.slice(-4)}</span>
               {arcBalance && (
                 <>
-                  <span style={{ opacity: 0.4 }}>·</span>
-                  <span>{arcBalance} ARC</span>
+                  <span style={{ color: "var(--dim)" }}>·</span>
+                  <span style={{ color: "var(--text)" }}>{arcBalance} ARC</span>
                 </>
               )}
             </div>
           ) : (
-            <button onClick={connect} style={{
-              background: "#000",
-              color: "#00ff41",
-              border: "none",
-              padding: "10px 24px",
-              fontSize: "13px",
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}>
+            <button onClick={connect} className="pill pill-primary">
               Connect Wallet
             </button>
           )}
         </div>
-      </nav>
+      </header>
 
       {/* ─── HERO ─── */}
-      <div style={{ borderBottom: "2px solid #000", padding: "48px 32px 40px", maxWidth: "1100px", margin: "0 auto" }}>
-        <div style={{ fontWeight: 900, fontSize: "clamp(48px, 8vw, 96px)", lineHeight: "0.88", letterSpacing: "-0.04em", marginBottom: "16px" }}>
-          CLOCK IN.<br /><span style={{ color: "#00ff41" }}>GET PAID.</span>
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          padding: "clamp(56px, 9vw, 112px) clamp(18px, 4vw, 48px) clamp(120px, 16vw, 220px)",
+          borderBottom: "1px solid var(--line)",
+        }}
+      >
+        <Terrain />
+        <div style={{ position: "relative", zIndex: 2, maxWidth: "1120px", margin: "0 auto" }}>
+          <div className="eyebrow fade-up d1" style={{ marginBottom: "22px" }}>
+            For operators, not experimenters
+          </div>
+
+          <h1 className="display-xl fade-up d2" style={{ marginBottom: "26px" }}>
+            Clock in.
+            <br />
+            <span style={{ color: "var(--blush)" }}>Get paid.</span>
+          </h1>
+
+          <p
+            className="fade-up d3"
+            style={{
+              maxWidth: "520px",
+              fontSize: "14px",
+              lineHeight: 1.7,
+              color: "var(--muted)",
+              marginBottom: "32px",
+            }}
+          >
+            On-chain shift tracking for oilfield workers. Every closed shift earns 0.30 USDC —
+            distributed by the foreman agent. No timesheets, no middlemen, just verifiable field ops.
+          </p>
+
+          <div className="fade-up d4" style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+            {connected ? (
+              <button
+                onClick={cIn ? clockOut : clockIn}
+                disabled={txLoading}
+                className="pill pill-primary"
+              >
+                {txLoading ? "Processing…" : cIn ? "Clock Out →" : "Clock In →"}
+              </button>
+            ) : (
+              <button onClick={connect} className="pill pill-primary">
+                Connect Wallet →
+              </button>
+            )}
+            <a
+              href={`https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pill pill-secondary"
+            >
+              View Contract ↗
+            </a>
+          </div>
         </div>
-        <p style={{ fontSize: "15px", color: "#555", maxWidth: "480px", lineHeight: "1.5" }}>
-          On-chain shift tracking for oilfield workers. Every closed shift earns 0.30 USDC — distributed weekly by the foreman agent.
-        </p>
-      </div>
+      </section>
 
-      {/* ─── MAIN GRID ─── */}
-      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 32px" }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: connected ? "1fr 1fr" : "1fr",
-          gap: "0",
-          borderBottom: "2px solid #000",
-        }}>
-
+      {/* ─── CONSOLE GRID ─── */}
+      <main style={{ position: "relative", zIndex: 2, maxWidth: "1120px", margin: "0 auto", padding: "clamp(40px, 6vw, 72px) clamp(18px, 4vw, 48px) 0" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: connected ? "minmax(0,1fr) minmax(0,1fr)" : "minmax(0,1fr)",
+            gap: "18px",
+          }}
+        >
           {/* LEFT: ACTION PANEL */}
-          <div style={{ padding: "40px 0", borderRight: connected ? "1.5px solid #000" : undefined, paddingRight: connected ? "40px" : undefined }}>
+          <div className="panel ticks" style={{ padding: "26px" }}>
+            <div className="label" style={{ marginBottom: "18px" }}>
+              {connected ? "// Operator Console" : "// Access"}
+            </div>
+
             {!connected ? (
-              <div style={{ textAlign: "center", padding: "48px 0" }}>
-                <div style={{ fontSize: "15px", color: "#555", marginBottom: "24px", lineHeight: "1.6" }}>
-                  Connect your wallet to start tracking shifts on Arc Testnet.
-                </div>
-                <button onClick={connect} style={{
-                  background: "#000",
-                  color: "#00ff41",
-                  border: "none",
-                  padding: "16px 48px",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}>
+              <div style={{ padding: "20px 0 8px" }}>
+                <p style={{ fontSize: "14px", color: "var(--muted)", lineHeight: 1.7, marginBottom: "22px" }}>
+                  Connect your wallet to start tracking shifts on Arc Testnet. The page adds and
+                  switches the network for you.
+                </p>
+                <button onClick={connect} className="pill pill-primary" style={{ width: "100%" }}>
                   Connect Wallet →
                 </button>
               </div>
             ) : (
               <>
-                <div style={{ marginBottom: "32px" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: "8px" }}>
-                    Shift Status
-                  </div>
-                  <div style={{
+                {/* shift status */}
+                <div
+                  className="panel-raised"
+                  style={{
                     display: "flex",
                     alignItems: "center",
                     gap: "12px",
-                    padding: "16px 20px",
-                    background: cIn ? "#000" : "#f0f0f0",
-                    color: cIn ? "#00ff41" : "#666",
-                    marginBottom: "8px",
-                  }}>
-                    <div style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: "50%",
-                      background: cIn ? "#00ff41" : "#999",
-                      boxShadow: cIn ? "0 0 8px #00ff41" : "none",
-                    }} />
-                    <span style={{ fontWeight: 700, fontSize: "14px", fontFamily: '"Courier New", monospace' }}>
-                      {cIn ? "ON SHIFT" : "OFF SHIFT"}
+                    padding: "16px 18px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <span className={`status-dot ${cIn ? "" : "idle"}`} />
+                  <span className="mono" style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.12em", color: cIn ? "var(--blush)" : "var(--muted)" }}>
+                    {cIn ? "ON SHIFT" : "OFF SHIFT"}
+                  </span>
+                  {cIn && elapsed > 0 && (
+                    <span className="mono" style={{ marginLeft: "auto", fontSize: "13px", color: "var(--text)" }}>
+                      {formatDuration(elapsed)}
                     </span>
-                    {cIn && elapsed > 0 && (
-                      <span style={{ marginLeft: "auto", fontSize: "13px", opacity: 0.8 }}>
-                        {formatDuration(elapsed)}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
 
-                {/* MAIN BUTTON */}
+                {/* main button */}
                 <button
                   onClick={cIn ? clockOut : clockIn}
                   disabled={txLoading}
-                  style={{
-                    width: "100%",
-                    background: txLoading ? "#ccc" : cIn ? "#000" : "#00ff41",
-                    color: txLoading ? "#888" : cIn ? "#00ff41" : "#000",
-                    border: cIn ? "2px solid #000" : "2px solid #00ff41",
-                    padding: "20px",
-                    fontSize: "16px",
-                    fontWeight: 900,
-                    letterSpacing: "0.06em",
-                    cursor: txLoading ? "not-allowed" : "pointer",
-                    fontFamily: "inherit",
-                    marginBottom: "12px",
-                  }}
+                  className={`pill ${cIn ? "pill-secondary" : "pill-primary"}`}
+                  style={{ width: "100%", marginBottom: "14px" }}
                 >
-                  {txLoading ? "PROCESSING..." : cIn ? "CLOCK OUT →" : "CLOCK IN →"}
+                  {txLoading ? "Processing…" : cIn ? "Clock Out →" : "Clock In →"}
                 </button>
 
                 {txStatus && (
-                  <div style={{
-                    padding: "10px 14px",
-                    background: txStatus.includes("✓") ? "#f0fff4" : "#f5f5f5",
-                    border: `1px solid ${txStatus.includes("✓") ? "#00ff41" : "#ddd"}`,
-                    fontFamily: '"Courier New", monospace',
-                    fontSize: "12px",
-                    color: txStatus.includes("✓") ? "#007a20" : "#333",
-                    wordBreak: "break-all",
-                    marginBottom: "16px",
-                  }}>
+                  <div
+                    className="mono"
+                    style={{
+                      padding: "11px 14px",
+                      border: `1px solid ${ok ? "var(--blush-dim)" : "var(--line-2)"}`,
+                      background: "var(--bg-3)",
+                      fontSize: "12px",
+                      color: ok ? "var(--blush)" : "var(--muted)",
+                      wordBreak: "break-all",
+                      marginBottom: "16px",
+                    }}
+                  >
                     {txStatus}
                   </div>
                 )}
 
-                {/* Worker stats */}
+                {/* worker stats */}
                 {workerInfo && (
-                  <div style={{ borderTop: "1.5px solid #eee", paddingTop: "20px", marginTop: "8px" }}>
-                    <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: "12px" }}>
-                      My Stats
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="hairline" style={{ paddingTop: "18px" }}>
+                    <div className="label" style={{ marginBottom: "12px" }}>My Stats</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                       {[
                         ["Shifts completed", workerInfo.shiftsCompleted.toString()],
                         ["Unpaid shifts", workerInfo.unpaidShifts.toString()],
                         ["Shifts paid", workerInfo.shiftsPaid.toString()],
                         ["Earned (est.)", `$${(workerInfo.shiftsPaid * 0.30).toFixed(2)}`],
                       ].map(([k, v]) => (
-                        <div key={k} style={{ padding: "12px", background: "#f8f8f8", borderLeft: "3px solid #00ff41" }}>
-                          <div style={{ fontSize: "10px", color: "#999", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "4px" }}>{k}</div>
-                          <div style={{ fontWeight: 900, fontSize: "20px", fontFamily: '"Courier New", monospace', letterSpacing: "-0.02em" }}>{v}</div>
+                        <div key={k} className="panel-raised" style={{ padding: "13px 14px", borderLeft: "2px solid var(--blush-dim)" }}>
+                          <div className="label" style={{ marginBottom: "6px" }}>{k}</div>
+                          <div className="mono" style={{ fontWeight: 700, fontSize: "22px", color: "var(--text)" }}>{v}</div>
                         </div>
                       ))}
                     </div>
@@ -388,57 +478,50 @@ export default function Home() {
 
           {/* RIGHT: GLOBAL STATS */}
           {connected && (
-            <div style={{ padding: "40px 0 40px 40px" }}>
-              <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: "20px" }}>
-                Protocol Stats
-              </div>
+            <div className="panel ticks" style={{ padding: "26px" }}>
+              <div className="label" style={{ marginBottom: "18px" }}>// Protocol Telemetry</div>
 
               {globalStats ? (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "22px" }}>
                   {[
                     ["Total Shifts", globalStats.totalShiftsClosed.toString()],
                     ["Workers", globalStats.workerCount.toString()],
                     ["USDC Distributed", `$${globalStats.totalUSDCDistributed.toFixed(2)}`],
                     ["Pool Balance", `$${globalStats.poolBalance.toFixed(2)}`],
                   ].map(([k, v]) => (
-                    <div key={k} style={{ padding: "16px", border: "1.5px solid #e8e8e8" }}>
-                      <div style={{ fontSize: "10px", color: "#999", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "6px" }}>{k}</div>
-                      <div style={{ fontWeight: 900, fontSize: "28px", fontFamily: '"Courier New", monospace', letterSpacing: "-0.03em" }}>{v}</div>
+                    <div key={k} className="panel-raised" style={{ padding: "16px 16px" }}>
+                      <div className="label" style={{ marginBottom: "8px" }}>{k}</div>
+                      <div className="mono" style={{ fontWeight: 700, fontSize: "27px", color: "var(--text)", letterSpacing: "-0.01em" }}>{v}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div style={{ color: "#999", fontSize: "13px", marginBottom: "32px" }}>Loading stats...</div>
+                <div className="mono" style={{ color: "var(--dim)", fontSize: "13px", marginBottom: "22px" }}>Loading telemetry…</div>
               )}
 
-              {/* Contract info */}
-              <div style={{ borderTop: "1.5px solid #eee", paddingTop: "20px" }}>
-                <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: "12px" }}>
-                  Contract
-                </div>
-                <div style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: "11px",
-                  background: "#000",
-                  color: "#00ff41",
-                  padding: "10px 12px",
-                  wordBreak: "break-all",
-                  marginBottom: "10px",
-                }}>
+              {/* contract */}
+              <div className="hairline" style={{ paddingTop: "18px" }}>
+                <div className="label" style={{ marginBottom: "10px" }}>Contract</div>
+                <div
+                  className="mono"
+                  style={{
+                    fontSize: "11px",
+                    background: "var(--bg)",
+                    border: "1px solid var(--line-2)",
+                    color: "var(--blush)",
+                    padding: "10px 12px",
+                    wordBreak: "break-all",
+                    marginBottom: "12px",
+                  }}
+                >
                   {CONTRACT_ADDRESS}
                 </div>
                 <a
                   href={`https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: "#000",
-                    textDecoration: "none",
-                    letterSpacing: "0.06em",
-                    borderBottom: "1.5px solid #000",
-                  }}
+                  className="readout link-underline"
+                  style={{ color: "var(--text)" }}
                 >
                   View on ArcScan ↗
                 </a>
@@ -447,61 +530,70 @@ export default function Home() {
           )}
         </div>
 
-        {/* ─── HOW IT WORKS (compact) ─── */}
-        <div style={{ padding: "40px 0", borderBottom: "2px solid #000" }}>
-          <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#999", marginBottom: "24px" }}>
-            How It Works
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0" }}>
+        {/* ─── HOW IT WORKS ─── */}
+        <section style={{ padding: "clamp(48px, 7vw, 84px) 0 clamp(40px, 6vw, 64px)" }}>
+          <div className="label" style={{ marginBottom: "26px" }}>// How It Works</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
             {[
-              { n: "01", title: "Clock In", body: "Hit the button. Contract records your shift start on Arc Testnet." },
-              { n: "02", title: "Clock Out", body: "End your shift. Duration and count stored permanently on-chain." },
-              { n: "03", title: "Get Paid", body: "Foreman agent distributes 0.30 USDC per closed shift, weekly." },
-            ].map((s, i) => (
-              <div key={i} style={{
-                padding: "24px 24px 24px 0",
-                paddingLeft: i > 0 ? "24px" : "0",
-                borderLeft: i > 0 ? "1.5px solid #e8e8e8" : undefined,
-              }}>
-                <div style={{ fontWeight: 900, fontSize: "40px", color: "#00ff41", lineHeight: "1", marginBottom: "12px", fontFamily: '"Courier New", monospace' }}>{s.n}</div>
-                <div style={{ fontWeight: 700, fontSize: "15px", marginBottom: "8px" }}>{s.title}</div>
-                <p style={{ fontSize: "13px", color: "#666", lineHeight: "1.5" }}>{s.body}</p>
+              { n: "01", title: "Clock In", body: "Hit the button. The contract records your shift start on Arc Testnet." },
+              { n: "02", title: "Clock Out", body: "End your shift. Duration and count are stored permanently on-chain." },
+              { n: "03", title: "Get Paid", body: "The foreman agent distributes 0.30 USDC for every closed shift." },
+            ].map((s) => (
+              <div key={s.n} className="panel" style={{ padding: "22px 22px 24px" }}>
+                <div className="pixel" style={{ fontSize: "34px", color: "var(--blush)", lineHeight: 1, marginBottom: "16px" }}>{s.n}</div>
+                <div className="mono" style={{ fontWeight: 700, fontSize: "15px", marginBottom: "8px", letterSpacing: "0.04em" }}>{s.title}</div>
+                <p style={{ fontSize: "13px", color: "var(--muted)", lineHeight: 1.65 }}>{s.body}</p>
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
 
       {/* ─── FOOTER ─── */}
-      <footer style={{
-        borderTop: "2px solid #000",
-        padding: "24px 32px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        fontSize: "12px",
-        maxWidth: "1100px",
-        margin: "0 auto",
-      }}>
-        <div style={{ fontWeight: 900, fontSize: "14px", letterSpacing: "-0.02em" }}>RIGSHIFT</div>
-        <div style={{ display: "flex", gap: "24px", color: "#666" }}>
-          <span>Arc Testnet · Chain ID 5042002</span>
-          <a
-            href={`https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#000", fontWeight: 700, textDecoration: "none" }}
-          >
-            Contract ↗
-          </a>
-          <a
-            href="https://github.com/givenshift/RigShift"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#000", fontWeight: 700, textDecoration: "none" }}
-          >
-            GitHub ↗
-          </a>
+      <footer
+        style={{
+          position: "relative",
+          zIndex: 2,
+          borderTop: "1px solid var(--line)",
+          padding: "26px clamp(18px, 4vw, 48px)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1120px",
+            margin: "0 auto",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "16px",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+            <RigMark />
+            <span className="pixel" style={{ fontSize: "14px" }}>RIGSHIFT</span>
+          </div>
+          <div className="readout" style={{ display: "flex", flexWrap: "wrap", gap: "20px", alignItems: "center" }}>
+            <span style={{ color: "var(--dim)" }}>Arc Testnet · Chain ID 5042002</span>
+            <a
+              href={`https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-underline"
+              style={{ color: "var(--text)" }}
+            >
+              Contract ↗
+            </a>
+            <a
+              href="https://github.com/givenshift/RigShift"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-underline"
+              style={{ color: "var(--text)" }}
+            >
+              GitHub ↗
+            </a>
+          </div>
         </div>
       </footer>
     </div>

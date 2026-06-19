@@ -169,124 +169,90 @@ export default function DeployPage() {
   const readyToDeploy = connected && chainOk && step === "idle";
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#fafafa",
-        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-        color: "#000",
-      }}
-    >
-      {/* TOP NAV */}
-      <nav
+    <div style={{ position: "relative", minHeight: "100vh", isolation: "isolate" }}>
+      {/* backdrop layers */}
+      <div className="dot-grid" />
+      <div className="vignette" />
+
+      {/* TOP BAR */}
+      <header
         style={{
-          borderBottom: "2px solid #000",
-          padding: "0 32px",
-          height: "60px",
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          padding: "16px clamp(18px, 4vw, 48px)",
+          borderBottom: "1px solid var(--line)",
+          background: "rgba(8,9,11,0.78)",
+          backdropFilter: "blur(8px)",
         }}
       >
-        <a
-          href="/"
-          style={{
-            fontWeight: 900,
-            fontSize: "16px",
-            letterSpacing: "-0.02em",
-            color: "#000",
-            textDecoration: "none",
-          }}
-        >
-          RIGSHIFT
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+          <svg width="24" height="24" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <g stroke="var(--blush)" strokeWidth="2.6" strokeLinejoin="round" strokeLinecap="round" fill="none">
+              <path d="M6 46 L20 22 L34 40 L48 14 L58 44" />
+              <path d="M6 46 L20 50 L34 46 L48 50 L58 44" opacity="0.55" />
+            </g>
+          </svg>
+          <span className="pixel" style={{ fontSize: "17px", letterSpacing: "0.04em", color: "var(--text)" }}>
+            RIGSHIFT
+          </span>
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {connected && (
-            <span
-              style={{
-                fontSize: "12px",
-                fontFamily: '"Courier New", monospace',
-                background: chainOk ? "#00ff41" : "#ffcc00",
-                color: "#000",
-                padding: "4px 10px",
-                fontWeight: 700,
-              }}
-            >
-              {chainOk ? "Arc Testnet ✓" : "Wrong Network ⚠"}
+          <div className="readout" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span className={`status-dot ${connected ? (chainOk ? "" : "warn") : "idle"}`} />
+            <span style={{ opacity: 0.85 }}>
+              {connected ? (chainOk ? "NET.ARC // READY" : "NET // WARN") : "DEPLOY.STANDBY"}
             </span>
-          )}
+          </div>
           {connected ? (
             <span
-              style={{
-                fontSize: "13px",
-                fontFamily: '"Courier New", monospace',
-                background: "#000",
-                color: "#00ff41",
-                padding: "6px 14px",
-                fontWeight: 700,
-              }}
+              className="panel-raised mono"
+              style={{ padding: "8px 14px", fontSize: "12px", color: "var(--blush)" }}
             >
               {account.slice(0, 6)}…{account.slice(-4)}
               {balance ? `  ·  ${balance} ARC` : ""}
             </span>
           ) : (
-            <button
-              onClick={connect}
-              style={{
-                background: "#000",
-                color: "#00ff41",
-                border: "none",
-                padding: "10px 22px",
-                fontSize: "13px",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
+            <button onClick={connect} className="pill pill-primary">
               Connect Wallet
             </button>
           )}
         </div>
-      </nav>
+      </header>
 
       {/* MAIN CONTENT */}
       <div
         style={{
-          maxWidth: "560px",
+          position: "relative",
+          zIndex: 2,
+          maxWidth: "600px",
           margin: "0 auto",
-          padding: "56px 24px 80px",
+          padding: "clamp(48px, 8vw, 72px) clamp(18px, 4vw, 24px) 96px",
         }}
       >
-        <h1
-          style={{
-            fontWeight: 900,
-            fontSize: "36px",
-            letterSpacing: "-0.03em",
-            lineHeight: "1",
-            marginBottom: "8px",
-          }}
-        >
-          Deploy <span style={{ color: "#00ff41" }}>RigShift</span>
+        <div className="eyebrow fade-up d1" style={{ marginBottom: "18px" }}>
+          Foreman provisioning
+        </div>
+        <h1 className="display-xl fade-up d2" style={{ fontSize: "clamp(30px, 6vw, 52px)", marginBottom: "12px" }}>
+          Deploy <span style={{ color: "var(--blush)" }}>RigShift</span>
         </h1>
         <p
-          style={{
-            fontSize: "14px",
-            color: "#555",
-            lineHeight: "1.5",
-            marginBottom: "40px",
-          }}
+          className="fade-up d3"
+          style={{ fontSize: "14px", color: "var(--muted)", lineHeight: 1.7, marginBottom: "34px" }}
         >
-          Deploys the shift-tracking contract to Arc Testnet. You become the
-          foreman — your address controls reward distribution.
+          Deploys the shift-tracking contract to Arc Testnet. You become the foreman — your
+          address controls reward distribution.
         </p>
 
         {/* Network info card */}
         <div
+          className="panel"
           style={{
-            border: "1.5px solid #ddd",
-            padding: "16px 20px",
-            marginBottom: "24px",
+            padding: "18px 20px",
+            marginBottom: "20px",
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
             gap: "16px",
@@ -298,67 +264,20 @@ export default function DeployPage() {
             ["Reward/shift", "0.30 USDC"],
           ].map(([k, v]) => (
             <div key={k}>
-              <div
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "#999",
-                  marginBottom: "4px",
-                }}
-              >
-                {k}
-              </div>
-              <div
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  fontFamily: '"Courier New", monospace',
-                }}
-              >
-                {v}
-              </div>
+              <div className="label" style={{ marginBottom: "6px" }}>{k}</div>
+              <div className="mono" style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)" }}>{v}</div>
             </div>
           ))}
         </div>
 
         {/* Step 1: Connect */}
         {!connected && (
-          <div
-            style={{
-              border: "2px solid #000",
-              padding: "28px 24px",
-              marginBottom: "16px",
-              textAlign: "center",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "14px",
-                color: "#444",
-                marginBottom: "20px",
-                lineHeight: "1.5",
-              }}
-            >
-              Connect your wallet. The page will automatically add and switch
-              to <strong>Arc Testnet</strong> (Chain ID: 5042002).
+          <div className="panel ticks" style={{ padding: "26px 24px", marginBottom: "16px", textAlign: "center" }}>
+            <p style={{ fontSize: "14px", color: "var(--muted)", marginBottom: "20px", lineHeight: 1.65 }}>
+              Connect your wallet. The page will automatically add and switch to{" "}
+              <strong style={{ color: "var(--blush)" }}>Arc Testnet</strong> (Chain ID: 5042002).
             </p>
-            <button
-              onClick={connect}
-              style={{
-                background: "#000",
-                color: "#00ff41",
-                border: "none",
-                padding: "14px 40px",
-                fontSize: "14px",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                width: "100%",
-              }}
-            >
+            <button onClick={connect} className="pill pill-primary" style={{ width: "100%" }}>
               Connect Wallet →
             </button>
           </div>
@@ -367,10 +286,10 @@ export default function DeployPage() {
         {/* Step 2: Wrong network warning */}
         {connected && !chainOk && (
           <div
+            className="panel"
             style={{
-              border: "2px solid #ffcc00",
-              background: "#fffbe6",
-              padding: "20px 24px",
+              borderColor: "var(--warn)",
+              padding: "18px 22px",
               marginBottom: "16px",
               display: "flex",
               alignItems: "center",
@@ -379,28 +298,14 @@ export default function DeployPage() {
             }}
           >
             <div>
-              <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>
+              <div className="mono" style={{ fontWeight: 700, fontSize: "14px", marginBottom: "4px", color: "var(--warn)" }}>
                 Wrong network
               </div>
-              <div style={{ fontSize: "13px", color: "#666" }}>
+              <div style={{ fontSize: "13px", color: "var(--muted)" }}>
                 Switch to Arc Testnet to deploy
               </div>
             </div>
-            <button
-              onClick={switchToArc}
-              style={{
-                background: "#000",
-                color: "#ffcc00",
-                border: "none",
-                padding: "10px 20px",
-                fontSize: "12px",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                whiteSpace: "nowrap",
-              }}
-            >
+            <button onClick={switchToArc} className="pill pill-secondary" style={{ whiteSpace: "nowrap" }}>
               Switch Network
             </button>
           </div>
@@ -412,21 +317,11 @@ export default function DeployPage() {
             <button
               onClick={deploy}
               disabled={!readyToDeploy}
-              style={{
-                width: "100%",
-                background: readyToDeploy ? "#000" : "#ccc",
-                color: readyToDeploy ? "#00ff41" : "#888",
-                border: "none",
-                padding: "18px",
-                fontSize: "15px",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                cursor: readyToDeploy ? "pointer" : "not-allowed",
-                fontFamily: "inherit",
-              }}
+              className="pill pill-primary"
+              style={{ width: "100%" }}
             >
               {step === "deploying"
-                ? "Deploying..."
+                ? "Deploying…"
                 : step === "done"
                 ? "Deployed ✓"
                 : "Deploy Contract →"}
@@ -437,14 +332,14 @@ export default function DeployPage() {
         {/* Status message */}
         {statusMsg && step !== "done" && (
           <div
+            className="mono"
             style={{
-              border: `1.5px solid ${step === "error" ? "#ff3333" : "#000"}`,
+              border: `1px solid ${step === "error" ? "#b85c5c" : "var(--line-2)"}`,
               padding: "14px 16px",
               marginBottom: "16px",
-              fontFamily: '"Courier New", monospace',
               fontSize: "12px",
-              color: step === "error" ? "#cc0000" : "#000",
-              background: step === "error" ? "#fff5f5" : "#f5f5f5",
+              color: step === "error" ? "#e3a3a3" : "var(--muted)",
+              background: "var(--bg-3)",
               wordBreak: "break-all",
             }}
           >
@@ -454,45 +349,21 @@ export default function DeployPage() {
 
         {/* Success result */}
         {step === "done" && contractAddress && (
-          <div
-            style={{
-              border: "2px solid #00ff41",
-              padding: "24px",
-              background: "#f5fff8",
-            }}
-          >
-            <div
-              style={{
-                fontWeight: 900,
-                fontSize: "20px",
-                letterSpacing: "-0.01em",
-                marginBottom: "20px",
-                color: "#000",
-              }}
-            >
+          <div className="panel ticks" style={{ borderColor: "var(--blush-dim)", padding: "24px" }}>
+            <div className="mono" style={{ fontWeight: 700, fontSize: "18px", marginBottom: "20px", color: "var(--blush)" }}>
               ✓ Contract Deployed
             </div>
 
             <div style={{ marginBottom: "16px" }}>
+              <div className="label" style={{ marginBottom: "6px" }}>Contract Address</div>
               <div
+                className="mono"
                 style={{
-                  fontSize: "10px",
+                  fontSize: "13px",
                   fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: "#999",
-                  marginBottom: "6px",
-                }}
-              >
-                Contract Address
-              </div>
-              <div
-                style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  background: "#000",
-                  color: "#00ff41",
+                  background: "var(--bg)",
+                  border: "1px solid var(--line-2)",
+                  color: "var(--blush)",
                   padding: "10px 14px",
                   wordBreak: "break-all",
                   userSelect: "all",
@@ -504,28 +375,13 @@ export default function DeployPage() {
 
             {txHash && (
               <div style={{ marginBottom: "20px" }}>
-                <div
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#999",
-                    marginBottom: "6px",
-                  }}
-                >
-                  Transaction Hash
-                </div>
+                <div className="label" style={{ marginBottom: "6px" }}>Transaction Hash</div>
                 <a
                   href={`https://testnet.arcscan.app/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    fontFamily: '"Courier New", monospace',
-                    fontSize: "12px",
-                    color: "#0066cc",
-                    wordBreak: "break-all",
-                  }}
+                  className="mono link-underline"
+                  style={{ fontSize: "12px", color: "var(--text)", wordBreak: "break-all" }}
                 >
                   {txHash}
                 </a>
@@ -536,17 +392,8 @@ export default function DeployPage() {
               href={`https://testnet.arcscan.app/address/${contractAddress}`}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                display: "block",
-                background: "#000",
-                color: "#00ff41",
-                padding: "12px",
-                fontSize: "13px",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textAlign: "center",
-                textDecoration: "none",
-              }}
+              className="pill pill-primary"
+              style={{ width: "100%" }}
             >
               View on ArcScan ↗
             </a>
@@ -554,25 +401,8 @@ export default function DeployPage() {
         )}
 
         {/* Contract specs */}
-        <div
-          style={{
-            marginTop: "40px",
-            borderTop: "1.5px solid #eee",
-            paddingTop: "24px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#999",
-              marginBottom: "12px",
-            }}
-          >
-            Contract Details
-          </div>
+        <div className="hairline" style={{ marginTop: "40px", paddingTop: "24px" }}>
+          <div className="label" style={{ marginBottom: "12px" }}>// Contract Details</div>
           {[
             ["Compiler", "Solidity 0.8.35"],
             ["Optimizer", "200 runs"],
@@ -585,20 +415,13 @@ export default function DeployPage() {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #f0f0f0",
+                padding: "9px 0",
+                borderBottom: "1px solid var(--line)",
                 fontSize: "13px",
               }}
             >
-              <span style={{ color: "#666" }}>{k}</span>
-              <span
-                style={{
-                  fontFamily: '"Courier New", monospace',
-                  fontWeight: 700,
-                }}
-              >
-                {v}
-              </span>
+              <span style={{ color: "var(--muted)" }}>{k}</span>
+              <span className="mono" style={{ fontWeight: 700, color: "var(--text)" }}>{v}</span>
             </div>
           ))}
         </div>
