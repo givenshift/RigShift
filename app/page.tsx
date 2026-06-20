@@ -479,7 +479,7 @@ export default function Home() {
           {/* RIGHT: GLOBAL STATS */}
           {connected && (
             <div className="panel ticks" style={{ padding: "26px" }}>
-              <div className="label" style={{ marginBottom: "18px" }}>// Protocol Telemetry</div>
+              <div className="label" style={{ marginBottom: "18px" }}>// Rig Readout</div>
 
               {globalStats ? (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "22px" }}>
@@ -496,7 +496,7 @@ export default function Home() {
                   ))}
                 </div>
               ) : (
-                <div className="mono" style={{ color: "var(--dim)", fontSize: "13px", marginBottom: "22px" }}>Loading telemetry…</div>
+                <div className="mono" style={{ color: "var(--dim)", fontSize: "13px", marginBottom: "22px" }}>Loading rig data…</div>
               )}
 
               {/* contract */}
